@@ -1,42 +1,69 @@
 "use client";
 
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const Hero = () => {
+  const router = useRouter();
   const socialLinks = [
     {
       icon: Github,
-      href: "https://github.com/adepu-vaatsava",
+      href: "https://github.com/bhargavvz",
       label: "GitHub",
     },
     {
       icon: Linkedin,
-      href: "https://www.linkedin.com/in/adepu-vaatsava-sri-bhargav-2a0b19227/",
+      href: "https://www.linkedin.com/in/bhargavvz/",
       label: "LinkedIn",
     },
     {
       icon: Twitter,
-      href: "https://twitter.com/vaatsava",
+      href: "https://x.com/avsbhar",
       label: "Twitter",
     },
     {
       icon: Mail,
-      href: "mailto:vaatsava.adepu@gmail.com",
+      href: "mailto:adepuvaatsavasribhargav@gmail.com",
       label: "Email",
     },
   ];
 
+  const dragY = useMotionValue(0);
+  const textOpacity = useTransform(dragY, [0, 50, 100], [0, 1, 1]);
+
+  const handleDragEnd = () => {
+    if (dragY.get() > 100) {
+      router.push('/blog');
+    }
+    dragY.set(0);
+  };
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center py-20">
+      {/* Drag indicator */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="container mx-auto px-6 text-center z-10"
+        className="fixed bottom-32 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing"
+        drag="y"
+        dragConstraints={{ top: -100, bottom: 100 }}
+        dragElastic={0.4}
+        style={{ y: dragY }}
+        onDragEnd={handleDragEnd}
       >
+        <motion.div 
+          className="w-1 h-16 rounded-full bg-gradient-to-b from-purple-500 to-pink-500 opacity-50"
+        />
+        <motion.div 
+          style={{ opacity: textOpacity }}
+          className="text-transparent bg-clip-text bg-gradient-to-r from-[#9333EA] to-[#EC4899] whitespace-nowrap text-lg font-medium"
+        >
+          Pull down to view blog →
+        </motion.div>
+      </motion.div>
+
+      <div className="container mx-auto px-6 text-center z-10">
         <motion.h1 
           className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text"
           initial={{ scale: 0.5 }}
@@ -139,7 +166,7 @@ const Hero = () => {
             Resume
           </Link>
         </motion.div>
-      </motion.div>
+      </div>
 
       <motion.div 
         className="absolute bottom-8 left-1/2 -translate-x-1/2"

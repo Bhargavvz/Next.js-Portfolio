@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import Message from '@/models/Message';
 import { validateForm } from '@/utils/validation';
+
+// Simple in-memory storage for development
+const messages: any[] = [];
 
 // Simple in-memory rate limiting
 const WINDOW_SIZE = 60 * 60 * 1000; // 1 hour in milliseconds
@@ -33,16 +34,9 @@ export async function POST(request: Request) {
     // Check rate limit
     const rateLimit = getRateLimit(ip);
     if (rateLimit.count >= MAX_REQUESTS) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: 'Too many requests. Please try again later.' 
-        }),
-        { 
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
       );
     }
 
@@ -52,38 +46,46 @@ export async function POST(request: Request) {
       count: rateLimit.count + 1
     });
 
+    // Get request body
     const body = await request.json();
-    const { name, email, message } = body;
-
-    if (!name || !email || !message) {
+    
+    // Basic validation
+    if (!body.name || !body.email || !body.message) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { 
+          errors: [
+            { field: 'name', message: 'Name is required' },
+            { field: 'email', message: 'Email is required' },
+            { field: 'message', message: 'Message is required' }
+          ].filter(error => !body[error.field])
+        },
         { status: 400 }
       );
     }
 
-    // Validate form data
-    const validationErrors = validateForm(body);
-    if (validationErrors.length > 0) {
-      console.log('Validation errors:', validationErrors);
+    // Email validation
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(body.email)) {
       return NextResponse.json(
-        { errors: validationErrors },
+        { 
+          errors: [
+            { field: 'email', message: 'Please enter a valid email' }
+          ]
+        },
         { status: 400 }
       );
     }
 
-    // Connect to database
-    await connectToDatabase();
-    console.log('Connected to database');
-
-    // Create message
-    const messageDoc = await Message.create({
-      name,
-      email,
-      message,
-      createdAt: new Date(),
+    // Store message in memory (temporary solution)
+    messages.push({
+      name: body.name,
+      email: body.email,
+      message: body.message,
+      createdAt: new Date()
     });
-    console.log('Created message:', messageDoc);
+
+    // Send email notification (you can implement this later)
+    console.log('New message received:', body);
 
     return NextResponse.json(
       { message: 'Message sent successfully' },

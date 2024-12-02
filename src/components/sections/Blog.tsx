@@ -49,10 +49,10 @@ export default function Blog() {
   return (
     <section id="blog" className="py-20">
       <div className="container mx-auto px-4">
-        <SectionHeading icon={<Trophy className="w-6 h-6 text-purple-500" />}>
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">Achievements</h2>
-          </div>
+        <SectionHeading icon={<Trophy className="w-6 h-6" />}>
+          <span className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9333EA] to-[#EC4899]">
+            Blog
+          </span>
         </SectionHeading>
 
         {isLoading ? (

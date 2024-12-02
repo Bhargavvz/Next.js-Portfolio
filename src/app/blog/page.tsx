@@ -10,6 +10,7 @@ import SpaceBackground from '@/components/SpaceBackground';
 import { PlusCircle, ArrowLeft, LogOut } from 'lucide-react';
 import { useToastContext } from '@/contexts/ToastContext';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { BlogPostType } from '@/types/blog';
 
 export default function BlogPage() {
@@ -23,6 +24,65 @@ export default function BlogPage() {
   const [hasMore, setHasMore] = useState(true);
   const [selectedPost, setSelectedPost] = useState<BlogPostType | null>(null);
   const { showToast } = useToastContext();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('blog_auth');
+    showToast('Logged out successfully', 'success');
+  }, [showToast]);
+
+  // Auto logout when navigating away
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (pathname !== '/blog') {
+        handleLogout();
+      }
+    };
+
+    handleRouteChange();
+
+    window.addEventListener('popstate', handleLogout);
+    return () => {
+      window.removeEventListener('popstate', handleLogout);
+    };
+  }, [pathname, handleLogout]);
+
+  // Session timeout after 30 minutes of inactivity
+  useEffect(() => {
+    let inactivityTimeout: NodeJS.Timeout;
+
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimeout);
+      inactivityTimeout = setTimeout(() => {
+        if (isAuthenticated) {
+          handleLogout();
+          showToast('Session expired due to inactivity', 'info');
+        }
+      }, 5 * 60 * 1000); // 10 minutes
+    };
+
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
+    if (isAuthenticated) {
+      resetInactivityTimer();
+      window.addEventListener('mousemove', handleActivity);
+      window.addEventListener('keypress', handleActivity);
+      window.addEventListener('click', handleActivity);
+      window.addEventListener('scroll', handleActivity);
+    }
+
+    return () => {
+      clearTimeout(inactivityTimeout);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keypress', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+    };
+  }, [isAuthenticated, handleLogout, showToast]);
 
   const fetchPosts = useCallback(async (pageNum: number = 1) => {
     try {
@@ -52,12 +112,6 @@ export default function BlogPage() {
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
     fetchPosts(page + 1);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('blog_auth');
-    showToast('Logged out successfully', 'success');
   };
 
   const handleEditPost = async (post: BlogPostType) => {

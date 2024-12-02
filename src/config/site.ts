@@ -128,14 +128,14 @@ export const siteConfig = {
         title: 'Portfolio Website',
         description: 'A modern personal portfolio website showcasing my projects and skills. ',
         technologies: ['React', 'Styled Components', 'Framer Motion'],
-        github: 'https://github.com/Bhargavvz',
+        github: 'https://github.com/Bhargavvz/Portfolio',
         image: '/projects/portfolio.jpg'
       },
       {
         title: 'Weather App',
         description: 'An interactive weather application providing real-time weather information and forecasts.',
         technologies: ['React', 'OpenWeatherMap API', 'CSS3'],
-        github: 'https://github.com/Bhargavvz',
+        github: 'https://github.com/Bhargavvz/Weather-app',
         image: '/projects/weather.jpg'
       }
       
@@ -145,7 +145,7 @@ export const siteConfig = {
       title: "HackByte 2024",
       position: "2nd Runner-Up",
       organization: "Vellore Institute of Technology, Andhra Pradesh",
-      link: "https://link-to-hackbyte-details.com"
+      link: "https://shorturl.at/E9Olz"
     },
     {
       title: "Hack4SDG Hackathon",

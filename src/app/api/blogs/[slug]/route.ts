@@ -10,10 +10,16 @@ interface Params {
 export async function GET(request: Request, { params }: { params: Params }) {
   try {
     const { slug } = params;
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug is required' },
+        { status: 400 }
+      );
+    }
 
     await connectToDatabase();
-
-    const post = await BlogPost.findOne({ slug, published: true });
+    const post = await BlogPost.findOne({ slug });
+    
     if (!post) {
       return NextResponse.json(
         { error: 'Blog post not found' },
@@ -31,15 +37,19 @@ export async function GET(request: Request, { params }: { params: Params }) {
   }
 }
 
-// Update blog post (protected route)
+// Update blog post
 export async function PUT(request: Request, { params }: { params: Params }) {
   try {
     const { slug } = params;
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug is required' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
-
     await connectToDatabase();
-
-    // TODO: Add authentication check here
 
     const post = await BlogPost.findOneAndUpdate(
       { slug },
@@ -54,7 +64,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       );
     }
 
-    return NextResponse.json({ post }, { status: 200 });
+    return NextResponse.json(
+      { post, message: 'Post updated successfully' },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error('Error updating blog post:', error);
     return NextResponse.json(
@@ -64,16 +77,20 @@ export async function PUT(request: Request, { params }: { params: Params }) {
   }
 }
 
-// Delete blog post (protected route)
+// Delete blog post
 export async function DELETE(request: Request, { params }: { params: Params }) {
   try {
     const { slug } = params;
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug is required' },
+        { status: 400 }
+      );
+    }
 
     await connectToDatabase();
-
-    // TODO: Add authentication check here
-
     const post = await BlogPost.findOneAndDelete({ slug });
+
     if (!post) {
       return NextResponse.json(
         { error: 'Blog post not found' },
@@ -82,7 +99,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     }
 
     return NextResponse.json(
-      { message: 'Blog post deleted successfully' },
+      { message: 'Post deleted successfully' },
       { status: 200 }
     );
   } catch (error: any) {

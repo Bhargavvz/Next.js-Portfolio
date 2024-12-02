@@ -8,7 +8,7 @@ import "./globals.css";
 import { ToastProvider } from '@/contexts/ToastContext';
 
 export const metadata: Metadata = {
-  title: 'Code Cosmos - Personal Portfolio',
+  title: 'Bhargav Adepu',
   description: 'A showcase of my work and thoughts on software development',
   keywords: ["portfolio", "developer", "full stack", "Bhargav", "web development"],
   authors: [{ name: "Adepu Vaatsava Sri Bhargav" }],

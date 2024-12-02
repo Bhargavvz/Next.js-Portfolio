@@ -42,11 +42,11 @@ const SectionHeading = ({ children, icon }: SectionHeadingProps) => {
         </motion.div>
       )}
       <h2 
-        className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text relative group-hover:from-purple-500 group-hover:to-pink-700 transition-all duration-300"
+        className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9333EA] to-[#EC4899] relative group-hover:from-[#9333EA] group-hover:to-[#EC4899] transition-all duration-300"
       >
         {children}
         <motion.div
-          className="absolute -bottom-2 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-600 opacity-0 group-hover:opacity-100 group-hover:w-full transition-all duration-300"
+          className="absolute -bottom-2 left-0 w-0 h-0.5 bg-gradient-to-r from-[#9333EA] to-[#EC4899] opacity-0 group-hover:opacity-100 group-hover:w-full transition-all duration-300"
           layoutId="underline"
         />
       </h2>

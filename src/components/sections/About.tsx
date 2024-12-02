@@ -32,7 +32,6 @@ const About = () => {
               <h3 className="text-xl md:text-2xl font-semibold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                   Technical Skills
                 </h3>
-
                 <div className="flex flex-wrap gap-2">
                   {['Python', 'Java', 'JavaScript', 'React', 'Node.js', 'SQL', 'Docker'].map((skill) => (
                     <span

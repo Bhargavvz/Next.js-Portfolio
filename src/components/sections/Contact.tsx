@@ -9,8 +9,8 @@ import { useToastContext } from '@/contexts/ToastContext';
 
 const contactInfo = {
   email: 'adepuvaatsavasribhargav@gmail.com',
-  phone: '+1 (123) 456-7890',
-  linkedin: 'https://www.linkedin.com/in/bhargav-adepu',
+  phone: '+91 9492909351',
+  linkedin: 'https://www.linkedin.com/in/bhargavvz/',
   github: 'https://github.com/Bhargavvz'
 };
 
@@ -67,6 +67,8 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Reset form state
     setFormState({ 
       isLoading: true, 
       isSuccess: false, 
@@ -87,9 +89,9 @@ export default function Contact() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 400 && data.errors) {
-          const validationErrors = data.errors.reduce((acc: any, error: any) => {
-            acc[error.field] = error.message;
+        if (response.status === 400 && data.error) {
+          const validationErrors = data.error.details.reduce((acc: any, error: any) => {
+            acc[error.context.key] = error.message;
             return acc;
           }, {});
           
@@ -101,18 +103,22 @@ export default function Contact() {
             validationErrors
           });
           showToast('Please fix the validation errors', 'error');
-          return;
+        } else if (response.status === 429) {
+          setFormState({
+            isLoading: false,
+            isSuccess: false,
+            isError: true,
+            errorMessage: data.error,
+            validationErrors: {}
+          });
+          showToast(data.error, 'error');
+        } else {
+          throw new Error(data.error || 'Failed to send message');
         }
-
-        throw new Error(data.error || 'Failed to send message');
+        return;
       }
 
-      setFormData({
-        name: '',
-        email: '',
-        message: ''
-      });
-      
+      // Success
       setFormState({
         isLoading: false,
         isSuccess: true,
@@ -120,19 +126,24 @@ export default function Contact() {
         errorMessage: '',
         validationErrors: {}
       });
-
       showToast('Message sent successfully!', 'success');
-
-    } catch (error: any) {
-      console.error('Error sending message:', error);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Contact form error:', error);
       setFormState({
         isLoading: false,
         isSuccess: false,
         isError: true,
-        errorMessage: error.message || 'Failed to send message',
+        errorMessage: 'Failed to send message. Please try again later.',
         validationErrors: {}
       });
-      showToast(error.message || 'Failed to send message', 'error');
+      showToast('Failed to send message. Please try again later.', 'error');
     }
   };
 
@@ -250,18 +261,22 @@ export default function Contact() {
             <button
               type="submit"
               disabled={formState.isLoading}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-3 px-6 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors relative ${
+                formState.isLoading ? 'cursor-not-allowed opacity-75' : ''
+              }`}
             >
               {formState.isLoading ? (
                 <>
-                  <span className="animate-spin">⌛</span>
-                  Sending...
+                  <span className="opacity-0">Send Message</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  </div>
                 </>
               ) : (
-                <>
+                <div className="flex items-center justify-center gap-2">
                   <Send className="w-5 h-5" />
-                  Send Message
-                </>
+                  <span>Send Message</span>
+                </div>
               )}
             </button>
           </div>
