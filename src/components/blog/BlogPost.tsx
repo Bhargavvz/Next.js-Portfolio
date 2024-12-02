@@ -64,7 +64,7 @@ const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) =>
               <div>
                 <p className="text-sm text-white">{post.author?.name || 'Anonymous'}</p>
                 <p className="text-xs text-gray-400">
-                  {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                  {post.createdAt ? format(new Date(post.createdAt), 'MMM d, yyyy') : 'No date'}
                 </p>
               </div>
             </div>

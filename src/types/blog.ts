@@ -1,9 +1,8 @@
 export interface BlogPostType {
   _id?: string;
   title: string;
-  slug: string;
-  excerpt: string;
   content: string;
+  excerpt: string;
   coverImage: string;
   tags: string[];
   author: {
@@ -11,8 +10,9 @@ export interface BlogPostType {
     image: string;
   };
   published: boolean;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  slug: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 export interface BlogPaginationType {

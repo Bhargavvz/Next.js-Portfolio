@@ -43,43 +43,40 @@ const blogPostSchema = new Schema<BlogPostType>({
       message: 'Tags must not be empty and each tag must be 20 characters or less',
     },
   },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
   coverImage: {
     type: String,
-    trim: true,
+    default: '/images/default-cover.jpg',
   },
   author: {
     name: {
       type: String,
       required: [true, 'Author name is required'],
       trim: true,
-      maxlength: [50, 'Author name cannot be more than 50 characters'],
     },
     image: {
       type: String,
-      required: [true, 'Author image is required'],
-      trim: true,
+      default: '/images/default-avatar.jpg',
     },
   },
   published: {
     type: Boolean,
+    default: true,
   },
   slug: {
     type: String,
-  },
+    required: [true, 'Slug is required'],
+    unique: true,
+    trim: true,
+  }
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
+    transform(doc, ret) {
+      ret._id = ret._id.toString();
       delete ret.__v;
       return ret;
-    },
-  },
+    }
+  }
 });
 
 export const BlogPost = models.BlogPost || model<BlogPostType>('BlogPost', blogPostSchema);

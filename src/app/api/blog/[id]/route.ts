@@ -51,12 +51,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
       content: body.content,
       excerpt: body.excerpt,
       tags: body.tags,
-      date: body.date || new Date(),
       author: body.author || {
         name: 'Admin',
         image: '/images/default-avatar.jpg'
       },
-      coverImage: body.coverImage || '/images/default-cover.jpg'
+      coverImage: body.coverImage || '/images/default-cover.jpg',
+      published: body.published !== undefined ? body.published : true,
+      slug: body.slug || body.title.toLowerCase().replace(/\s+/g, '-'),
     });
 
     if (!updatedPost) {
