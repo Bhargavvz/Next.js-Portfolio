@@ -2,7 +2,7 @@
 
 A modern, space-themed portfolio website built with Next.js, featuring a dynamic blog system, achievements showcase, and interactive UI components.
 
-![Code Cosmos](public/images/preview.png)
+![Code Cosmos](public/images/1.png)
 
 ## 🚀 Features
 
