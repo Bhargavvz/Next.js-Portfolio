@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
         name: 'Admin',
         image: '/images/default-avatar.jpg'
       },
-      coverImage: body.image || '/images/default-cover.jpg'
+      coverImage: body.coverImage || '/images/default-cover.jpg'
     });
 
     if (!updatedPost) {

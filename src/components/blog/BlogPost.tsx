@@ -5,25 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Edit2, Trash2 } from 'lucide-react';
+import { BlogPostType } from '@/types/blog';
 
 interface BlogPostProps {
-  post: {
-    _id: string;
-    title: string;
-    excerpt: string;
-    content: string;
-    image?: string;
-    tags: string[];
-    author?: {
-      name: string;
-      image: string;
-    };
-    createdAt: string;
-    slug: string;
-  };
+  post: BlogPostType;
   isAuthenticated?: boolean;
-  onEdit?: (postId: string) => void;
-  onDelete?: (postId: string) => void;
+  onEdit?: (post: BlogPostType) => void;
+  onDelete?: (post: BlogPostType) => void;
 }
 
 const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) => {
@@ -35,14 +23,13 @@ const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) =>
       >
         <Link href={`/blog/${post.slug}`} className="block">
           {/* Cover Image */}
-          <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
+          <div className="relative h-64 w-full overflow-hidden rounded-t-xl">
             <Image
-              src={post.image || '/images/default-cover.jpg'}
+              src={post.coverImage || '/images/default-cover.jpg'}
               alt={post.title}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
+              priority
             />
           </div>
 
@@ -90,7 +77,7 @@ const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) =>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onEdit?.(post._id);
+              onEdit?.(post);
             }}
             className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg text-white text-sm font-medium shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
             title="Edit post"
@@ -101,7 +88,7 @@ const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) =>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete?.(post._id);
+              onDelete?.(post);
             }}
             className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg text-white text-sm font-medium shadow-lg shadow-red-500/25 transition-all hover:scale-105"
             title="Delete post"

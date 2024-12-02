@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import BlogPost from '@/components/blog/BlogPost';
 import AddPostModal from '@/components/blog/AddPostModal';
@@ -10,25 +10,10 @@ import SpaceBackground from '@/components/SpaceBackground';
 import { PlusCircle, ArrowLeft, LogOut } from 'lucide-react';
 import { useToastContext } from '@/contexts/ToastContext';
 import Link from 'next/link';
-
-interface Post {
-  _id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  tags: string[];
-  date: string;
-  author: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-  slug: string;
-  image: string;
-}
+import { BlogPostType } from '@/types/blog';
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<BlogPostType[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -36,16 +21,10 @@ export default function BlogPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPost, setSelectedPost] = useState<BlogPostType | null>(null);
   const { showToast } = useToastContext();
 
-  useEffect(() => {
-    fetchPosts();
-    const isAuth = localStorage.getItem('blog_auth') === 'true';
-    setIsAuthenticated(isAuth);
-  }, [fetchPosts]);
-
-  const fetchPosts = async (pageNum: number = 1) => {
+  const fetchPosts = useCallback(async (pageNum: number = 1) => {
     try {
       const response = await fetch(`/api/blog?page=${pageNum}`);
       if (!response.ok) throw new Error('Failed to fetch posts');
@@ -62,7 +41,13 @@ export default function BlogPage() {
       showToast('Failed to fetch posts', 'error');
       setIsLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchPosts();
+    const isAuth = localStorage.getItem('blog_auth') === 'true';
+    setIsAuthenticated(isAuth);
+  }, [fetchPosts]);
 
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
@@ -75,19 +60,16 @@ export default function BlogPage() {
     showToast('Logged out successfully', 'success');
   };
 
-  const handleEditPost = async (postId: string) => {
+  const handleEditPost = async (post: BlogPostType) => {
     if (!isAuthenticated) {
       setIsPasswordModalOpen(true);
       return;
     }
-    const post = posts.find(p => p._id === postId);
-    if (post) {
-      setSelectedPost(post);
-      setIsEditModalOpen(true);
-    }
+    setSelectedPost(post);
+    setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = async (editedPost: Omit<Post, '_id'>) => {
+  const handleEditSubmit = async (editedPost: Omit<BlogPostType, '_id'>) => {
     try {
       if (!selectedPost) {
         showToast('No post selected for editing', 'error');
@@ -100,13 +82,13 @@ export default function BlogPage() {
         content: editedPost.content || selectedPost.content,
         excerpt: editedPost.excerpt || selectedPost.excerpt,
         tags: editedPost.tags || selectedPost.tags || [],
-        date: editedPost.date || selectedPost.date || new Date().toISOString(),
-        slug: editedPost.slug || selectedPost.slug,
+        coverImage: editedPost.coverImage || selectedPost.coverImage || '/images/default-cover.jpg',
         author: selectedPost.author || {
           name: 'Admin',
           image: '/images/default-avatar.jpg'
         },
-        image: editedPost.image || selectedPost.image || '/images/default-cover.jpg'
+        published: editedPost.published !== undefined ? editedPost.published : selectedPost.published,
+        slug: editedPost.slug || selectedPost.slug,
       };
 
       console.log('Sending post data:', postData);
@@ -136,7 +118,7 @@ export default function BlogPage() {
             ...data.post,
             author: data.post.author || post.author, // Preserve author if not in response
             tags: data.post.tags || post.tags || [], // Preserve tags if not in response
-            image: data.post.image || post.image || '/images/default-cover.jpg' // Preserve image if not in response
+            coverImage: data.post.coverImage || post.coverImage || '/images/default-cover.jpg' // Preserve coverImage if not in response
           } : post
         ));
         showToast('Post updated successfully!', 'success');
@@ -156,19 +138,19 @@ export default function BlogPage() {
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
+  const handleDeletePost = async (post: BlogPostType) => {
+    if (!isAuthenticated) {
+      setIsPasswordModalOpen(true);
+      return;
+    }
+    if (!post._id) return;
+    
     try {
-      if (!isAuthenticated) {
-        setIsPasswordModalOpen(true);
-        return;
-      }
-
-      const response = await fetch(`/api/blog/${postId}`, {
+      const response = await fetch(`/api/blog/${post._id}`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': localStorage.getItem('blog_auth') || ''
-        },
+        }
       });
 
       if (!response.ok) {
@@ -176,7 +158,7 @@ export default function BlogPage() {
         throw new Error(error.message || 'Failed to delete post');
       }
 
-      setPosts(prev => prev.filter(post => post._id !== postId));
+      setPosts(prev => prev.filter(p => p._id !== post._id));
       showToast('Post deleted successfully!', 'success');
     } catch (error: any) {
       console.error('Error deleting post:', error);
@@ -189,7 +171,7 @@ export default function BlogPage() {
     }
   };
 
-  const handleAddPost = async (newPost: Omit<Post, '_id'>) => {
+  const handleAddPost = async (newPost: Partial<BlogPostType>) => {
     try {
       const response = await fetch('/api/blog', {
         method: 'POST',
@@ -197,7 +179,10 @@ export default function BlogPage() {
           'Content-Type': 'application/json',
           'Authorization': localStorage.getItem('blog_auth') || ''
         },
-        body: JSON.stringify(newPost),
+        body: JSON.stringify({
+          ...newPost,
+          published: true
+        }),
       });
 
       if (!response.ok) {
@@ -339,14 +324,15 @@ export default function BlogPage() {
               content: '',
               excerpt: '',
               tags: [],
-              date: '',
+              coverImage: '',
               author: {
                 name: '',
                 image: ''
               },
+              published: false,
               createdAt: '',
-              slug: '',
-              image: ''
+              updatedAt: '',
+              slug: ''
             }}
           />
 

@@ -3,33 +3,30 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { BlogPostType } from '@/types/blog';
 
 interface EditPostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (post: EditPostData) => void;
-  post: {
-    _id: string;
-    title: string;
-    content: string;
-    excerpt: string;
-    tags: string[];
-  };
-}
-
-interface EditPostData {
-  title: string;
-  content: string;
-  excerpt: string;
-  tags: string[];
+  onSubmit: (post: Omit<BlogPostType, '_id'>) => void;
+  post: BlogPostType;
 }
 
 const EditPostModal = ({ isOpen, onClose, onSubmit, post }: EditPostModalProps) => {
-  const [formData, setFormData] = useState<EditPostData>({
+  const [formData, setFormData] = useState<Omit<BlogPostType, '_id'>>({
     title: '',
     content: '',
     excerpt: '',
+    coverImage: '',
     tags: [],
+    author: {
+      name: '',
+      image: ''
+    },
+    published: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    slug: ''
   });
 
   useEffect(() => {
@@ -38,7 +35,13 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }: EditPostModalProps) 
         title: post.title,
         content: post.content,
         excerpt: post.excerpt,
+        coverImage: post.coverImage,
         tags: post.tags,
+        author: post.author,
+        published: post.published,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        slug: post.slug
       });
     }
   }, [post]);
@@ -112,11 +115,66 @@ const EditPostModal = ({ isOpen, onClose, onSubmit, post }: EditPostModalProps) 
               </div>
 
               <div>
+                <label className="block text-gray-300 mb-2">Cover Image</label>
+                <input
+                  type="text"
+                  value={formData.coverImage}
+                  onChange={e => setFormData(prev => ({ ...prev, coverImage: e.target.value }))}
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <div>
                 <label className="block text-gray-300 mb-2">Tags (comma-separated)</label>
                 <input
                   type="text"
                   value={formData.tags.join(', ')}
                   onChange={handleTagsChange}
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Author Name</label>
+                <input
+                  type="text"
+                  value={formData.author.name}
+                  onChange={e => setFormData(prev => ({ ...prev, author: { ...prev.author, name: e.target.value } }))}
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Author Image</label>
+                <input
+                  type="text"
+                  value={formData.author.image}
+                  onChange={e => setFormData(prev => ({ ...prev, author: { ...prev.author, image: e.target.value } }))}
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Published</label>
+                <input
+                  type="checkbox"
+                  checked={formData.published}
+                  onChange={e => setFormData(prev => ({ ...prev, published: e.target.checked }))}
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Slug</label>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={e => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                   className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   required
                 />

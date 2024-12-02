@@ -6,10 +6,13 @@ export interface BlogPostType extends Document {
   excerpt: string;
   tags: string[];
   date: Date;
+  coverImage: string;
   author: {
     name: string;
     image: string;
   };
+  published?: boolean;
+  slug?: string;
 }
 
 const blogPostSchema = new Schema<BlogPostType>({
@@ -44,6 +47,10 @@ const blogPostSchema = new Schema<BlogPostType>({
     type: Date,
     default: Date.now,
   },
+  coverImage: {
+    type: String,
+    trim: true,
+  },
   author: {
     name: {
       type: String,
@@ -56,6 +63,12 @@ const blogPostSchema = new Schema<BlogPostType>({
       required: [true, 'Author image is required'],
       trim: true,
     },
+  },
+  published: {
+    type: Boolean,
+  },
+  slug: {
+    type: String,
   },
 }, {
   timestamps: true,
@@ -110,22 +123,28 @@ export async function createBlogPost(data: Omit<BlogPostType, '_id' | 'id' | 'da
   return post.toJSON();
 }
 
-export async function updateBlogPost(id: string, data: Partial<Omit<BlogPostType, '_id' | 'id'>>) {
+export async function updateBlogPost(
+  id: string,
+  data: Partial<Omit<BlogPostType, 'id' | '_id'>>
+): Promise<BlogPostType | null> {
   try {
     const post = await BlogPost.findById(id);
-    if (!post) {
-      throw new Error('Post not found');
-    }
+    if (!post) return null;
 
     // Update only the provided fields
-    Object.keys(data).forEach((key) => {
-      if (data[key] !== undefined) {
-        post[key] = data[key];
-      }
-    });
+    if (data.title !== undefined) post.title = data.title;
+    if (data.content !== undefined) post.content = data.content;
+    if (data.excerpt !== undefined) post.excerpt = data.excerpt;
+    if (data.coverImage !== undefined) post.coverImage = data.coverImage;
+    if (data.tags !== undefined) post.tags = data.tags;
+    if (data.author !== undefined) post.author = data.author;
+    if (data.published !== undefined) post.published = data.published;
+    if (data.slug !== undefined) post.slug = data.slug;
 
-    const updatedPost = await post.save();
-    return updatedPost.toJSON();
+    post.updatedAt = new Date();
+    await post.save();
+
+    return post;
   } catch (error) {
     console.error('Error updating blog post:', error);
     throw error;

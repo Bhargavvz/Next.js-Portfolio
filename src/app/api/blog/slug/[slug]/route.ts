@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import { BlogPost } from '@/models/BlogPost';
 
 export async function GET(
   request: Request,
@@ -8,9 +8,9 @@ export async function GET(
 ) {
   try {
     const { slug } = params;
-    const { db } = await connectToDatabase();
+    await connectToDatabase();
 
-    const post = await db.collection('posts').findOne({ slug });
+    const post = await BlogPost.findOne({ slug }).lean().exec();
 
     if (!post) {
       return NextResponse.json(

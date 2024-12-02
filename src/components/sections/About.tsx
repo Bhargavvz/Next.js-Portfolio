@@ -20,13 +20,13 @@ const About = () => {
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="space-y-4 order-2 md:order-1">
               <p className="text-gray-300">
-                I'm a Computer Science student at CMR College of Engineering & Technology,
+                I&apos;m a Computer Science student at CMR College of Engineering &amp; Technology,
                 passionate about creating innovative solutions through code. My journey in
                 tech has been marked by continuous learning and practical application.
               </p>
               <p className="text-gray-300">
                 With expertise in full-stack development and a keen interest in emerging
-                technologies, I've worked on various projects that solve real-world problems.
+                technologies, I&apos;ve worked on various projects that solve real-world problems.
               </p>
               <div className="pt-4">
               <h3 className="text-xl md:text-2xl font-semibold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">

@@ -3,7 +3,11 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-const SpaceBackground = () => {
+interface SpaceBackgroundProps {
+  className?: string;
+}
+
+const SpaceBackground = ({ className }: SpaceBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -72,10 +76,10 @@ const SpaceBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-0">
+    <div className={`${className} fixed inset-0 z-0`}>
       <canvas
         ref={canvasRef}
-        className="absolute inset-0"
+        className="absolute inset-0 w-full h-full"
       />
       <motion.div
         initial={{ opacity: 0 }}
