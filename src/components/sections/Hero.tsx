@@ -45,7 +45,7 @@ const Hero = () => {
     <section className="relative min-h-screen flex flex-col items-center justify-center py-20">
       {/* Drag indicator */}
       <motion.div 
-        className="fixed bottom-32 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing"
+        className="fixed bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-grab active:cursor-grabbing"
         drag="y"
         dragConstraints={{ top: -100, bottom: 100 }}
         dragElastic={0.4}
@@ -53,11 +53,8 @@ const Hero = () => {
         onDragEnd={handleDragEnd}
       >
         <motion.div 
-          className="w-1 h-16 rounded-full bg-gradient-to-b from-purple-500 to-pink-500 opacity-50"
-        />
-        <motion.div 
           style={{ opacity: textOpacity }}
-          className="text-transparent bg-clip-text bg-gradient-to-r from-[#9333EA] to-[#EC4899] whitespace-nowrap text-lg font-medium"
+          className="text-transparent bg-clip-text bg-gradient-to-r from-[#9333EA] to-[#EC4899] whitespace-nowrap text-lg font-medium px-4 py-2"
         >
           Pull down to view blog →
         </motion.div>
