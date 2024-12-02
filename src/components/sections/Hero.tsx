@@ -42,6 +42,7 @@ const Hero = () => {
   };
 
   return (
+    //
     <section className="relative min-h-screen flex flex-col items-center justify-center py-20">
       {/* Drag indicator */}
       <motion.div 
