@@ -95,23 +95,48 @@ const Hero = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="flex justify-center gap-4"
+          className="flex flex-col items-center gap-4"
         >
-          <Link 
-            href="#projects" 
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 
+          <div className="flex justify-center gap-4">
+            <Link 
+              href="#projects" 
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 
                      text-white rounded-lg font-medium hover:opacity-90 
                      transition-opacity"
-          >
-            View Projects
-          </Link>
+            >
+              View Projects
+            </Link>
+            <Link 
+              href="#contact" 
+              className="px-6 py-3 bg-transparent border border-transparent hover:bg-purple-500/10
+                     text-white rounded-lg font-medium transition-all duration-300
+                     bg-gradient-to-r from-transparent to-transparent hover:from-transparent hover:to-transparent
+                     [background-clip:padding-box]
+                     relative before:absolute before:inset-0 before:rounded-lg before:p-[1px]
+                     before:bg-gradient-to-r before:from-purple-500 before:to-cyan-500 before:-z-10"
+            >
+              Contact Me
+            </Link>
+            <Link 
+              href="#blog" 
+              className="px-6 py-3 bg-transparent border border-transparent hover:bg-purple-500/10
+                     text-white rounded-lg font-medium transition-all duration-300
+                     bg-gradient-to-r from-transparent to-transparent hover:from-transparent hover:to-transparent
+                     [background-clip:padding-box]
+                     relative before:absolute before:inset-0 before:rounded-lg before:p-[1px]
+                     before:bg-gradient-to-r before:from-purple-500 before:to-cyan-500 before:-z-10"
+            >
+              Read Blog
+            </Link>
+          </div>
           <Link 
-            href="/blog" 
-            className="px-6 py-3 bg-white/10 backdrop-blur-sm text-white 
-                     rounded-lg font-medium hover:bg-white/20 
-                     transition-colors border border-white/10"
+            href="/resume.pdf" 
+            target="_blank"
+            className="px-6 py-3 bg-transparent border border-purple-500/50 hover:border-purple-500
+                   text-white rounded-lg font-medium hover:bg-purple-500/10 
+                   transition-all duration-300"
           >
-            Read Blog
+            Resume
           </Link>
         </motion.div>
       </motion.div>

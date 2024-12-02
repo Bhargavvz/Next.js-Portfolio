@@ -50,24 +50,23 @@ const SkillButton = ({ category, onClick }: { category: SkillCategory; onClick: 
     className="group relative w-full h-full"
   >
     {/* Card Container */}
-    <div className="relative h-full rounded-2xl p-1 transition-all duration-300 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 hover:from-purple-500/10 hover:to-cyan-500/10">
-      <div className="relative h-full rounded-xl bg-gray-900/30 p-6 backdrop-blur-sm border border-white/5">
+    <div className="relative h-full rounded-2xl p-[1px] transition-all duration-300 group">
+      {/* Gradient border */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 group-hover:from-purple-500/30 group-hover:to-cyan-500/30" />
+      
+      {/* Content */}
+      <div className="relative h-full rounded-2xl bg-black/40 backdrop-blur-sm p-5">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400/90 to-cyan-400/90 bg-clip-text text-transparent">
+          <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400/90 to-cyan-400/90 bg-clip-text text-transparent">
             {category.title}
           </h3>
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
-            className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500/10 to-cyan-500/10 
+            className="h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm
                      flex items-center justify-center transition-transform cursor-pointer
-                     backdrop-blur-sm border border-white/5 hover:from-purple-500/20 
-                     hover:to-cyan-500/20 hover:border-white/10"
+                     border border-white/10 hover:border-white/20"
           >
             <Terminal className="h-4 w-4 text-white/70" />
           </motion.div>
@@ -81,12 +80,11 @@ const SkillButton = ({ category, onClick }: { category: SkillCategory; onClick: 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="relative"
+              className="relative group/item"
             >
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/5 to-cyan-500/5 blur" />
-              <div className="relative rounded-lg border border-white/5 px-3 py-1.5 
-                           backdrop-blur-sm transition-colors group-hover:border-white/10
-                           bg-white/5">
+              <div className="relative rounded-lg border border-white/10 px-3 py-1.5 
+                           bg-black/40 backdrop-blur-sm transition-all duration-300
+                           group-hover/item:border-white/20">
                 <span className="text-sm font-medium text-white/80">
                   {item}
                 </span>
@@ -124,7 +122,7 @@ const Skills = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="mt-12 grid gap-8 sm:grid-cols-2"
+          className="mt-12 grid gap-6 sm:grid-cols-2 max-w-5xl mx-auto px-4"
         >
           {skillsData.map((category, index) => (
             <SkillButton
@@ -203,12 +201,19 @@ const Skills = () => {
                                 </span>
                               </motion.div>
                             ))}
-                            <div className="flex items-center gap-2 text-green-400">
+                            <div className="flex items-center gap-2 text-green-400 mt-4">
                               <span>$</span>
                               <motion.span
-                                animate={{ opacity: [1, 0] }}
-                                transition={{ duration: 1, repeat: Infinity }}
-                                className="w-2 h-4 bg-green-400"
+                                initial={{ opacity: 0 }}
+                                animate={{ 
+                                  opacity: [0, 1, 1, 0],
+                                  transition: {
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    repeatDelay: 0.5
+                                  }
+                                }}
+                                className="inline-block w-3 h-5 bg-green-400"
                               />
                             </div>
                           </div>

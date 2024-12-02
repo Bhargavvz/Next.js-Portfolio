@@ -1,92 +1,175 @@
 # Code Cosmos Portfolio
 
-A modern, interactive portfolio website built with Next.js, TypeScript, and Tailwind CSS. Features a sleek design with smooth animations, an integrated blog system, and responsive navigation.
+A modern, space-themed portfolio website built with Next.js, featuring a dynamic blog system, achievements showcase, and interactive UI components.
 
-## 🌟 Features
+![Code Cosmos](public/images/preview.png)
 
-- **Modern Stack**: Built with Next.js 14, TypeScript, and Tailwind CSS
-- **Interactive Blog**: Password-protected blog post creation and management
-- **Smooth Navigation**: Enhanced taskbar with smooth scrolling and active state tracking
-- **Responsive Design**: Mobile-first approach with full responsiveness
-- **Animations**: Beautiful transitions and animations using Framer Motion
-- **Modern UI**: Clean, minimalist design with a futuristic aesthetic
+## 🚀 Features
 
-## 🛠️ Tech Stack
+- **Modern Tech Stack**
+  - Next.js 15.0.3 with App Router
+  - React with TypeScript
+  - MongoDB for data persistence
+  - Tailwind CSS for styling
+  - Framer Motion for animations
 
-- **Framework**: Next.js 14 with TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **UI Components**: Headless UI
-- **Icons**: Lucide React, React Icons
+- **Dynamic Blog System**
+  - Markdown support for blog posts
+  - Tag-based categorization
+  - Search and filter capabilities
+  - Responsive image handling
+  - SEO optimization
 
-## 🚀 Getting Started
+- **Interactive UI**
+  - Space-themed animations
+  - Smooth page transitions
+  - Responsive design
+  - Dark mode optimized
+  - Loading states and error boundaries
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Bhargavvz/Next.js-Portfolio.git
+- **Authentication & Security**
+  - Token-based authentication
+  - Protected admin routes
+  - Secure content management
+  - Role-based access control
+
+## 🛠️ Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/code-cosmos.git
+   cd code-cosmos
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env.local` file:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   NEXT_PUBLIC_API_URL=http://localhost:3000
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## 📁 Project Structure
+
+```
+code-cosmos/
+├── src/
+│   ├── app/                 # Next.js app router pages
+│   ├── components/          # React components
+│   │   ├── blog/           # Blog-related components
+│   │   ├── sections/       # Main page sections
+│   │   └── ui/             # Reusable UI components
+│   ├── lib/                # Utility functions and API
+│   └── styles/             # Global styles
+├── public/                 # Static assets
+└── types/                 # TypeScript type definitions
 ```
 
-2. Install dependencies:
-```bash
-npm install
-# or
-yarn install
+## 🔧 Core Components
+
+- **Blog System**
+  - Dynamic post creation and editing
+  - Markdown support with syntax highlighting
+  - Image optimization and CDN support
+  - Comment system (coming soon)
+
+- **Portfolio Sections**
+  - About Me
+  - Projects Showcase
+  - Achievements
+  - Contact Form
+
+- **Admin Dashboard**
+  - Content management
+  - Analytics (coming soon)
+  - User management
+  - Media library
+
+## 🎨 Design System
+
+- **Colors**
+  - Primary: Purple (#8B5CF6)
+  - Background: Dark (#000000)
+  - Accents: Space-themed gradients
+
+- **Typography**
+  - Headings: Space Grotesk
+  - Body: Inter
+
+- **Components**
+  - Custom buttons and inputs
+  - Animated cards
+  - Loading skeletons
+  - Toast notifications
+
+## 📦 Dependencies
+
+```json
+{
+  "dependencies": {
+    "next": "15.0.3",
+    "react": "^18",
+    "framer-motion": "^10",
+    "tailwindcss": "^3",
+    "mongoose": "^7",
+    "date-fns": "^2",
+    "lucide-react": "^0.292.0"
+  }
+}
 ```
-
-3. Run the development server:
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## 📱 Key Components
-
-- **Blog System**: Create and manage blog posts with password protection
-- **Taskbar Navigation**: Smooth scrolling between sections
-- **Interactive UI**: Animated components and transitions
-- **Responsive Layout**: Works seamlessly on all devices
 
 ## 🔒 Security Features
 
-- Password-protected blog post creation
-- Client-side validation
-- Basic authentication mechanism
+- CSRF protection
+- XSS prevention
+- Rate limiting
+- Input validation
+- Secure headers
 
-## 📦 Project Structure
+## 🚧 Upcoming Features
 
-- `/src/app`: Main application pages
-- `/src/components`: Reusable UI components
-- `/src/styles`: Global styles and CSS modules
-- `/src/lib`: Utility functions and helpers
-- `/src/types`: TypeScript type definitions
-
-## 🎨 Design Principles
-
-- Minimalist, futuristic aesthetic
-- Gradient-based color schemes
-- Translucent UI elements
-- Smooth, meaningful animations
-- Mobile-first responsive design
-
-## 🔧 Configuration
-
-The project uses various configuration files:
-- `tailwind.config.ts`: Tailwind CSS configuration
-- `tsconfig.json`: TypeScript configuration
-- `package.json`: Project dependencies and scripts
-
-## 📝 License
-
-This project is open source and available under the MIT License.
+- [ ] Advanced blog filtering
+- [ ] Comment system
+- [ ] Newsletter integration
+- [ ] Analytics dashboard
+- [ ] Social media sharing
+- [ ] Improved accessibility
+- [ ] Multi-language support
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a pull request
 
-## 👤 Author
+## 📄 License
 
-**Bhargav**
-- GitHub: [@Bhargavvz](https://github.com/Bhargavvz)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Next.js team for the amazing framework
+- Vercel for hosting
+- MongoDB for database
+- All contributors and supporters
+
+---
+
+Built with 💜 by [Your Name]

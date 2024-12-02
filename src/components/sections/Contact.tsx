@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ContactFormData, ContactFormState } from '@/types/contact';
 import { Mail, Phone, Linkedin, Github, Send } from 'lucide-react';
 import SectionHeading from '../ui/SectionHeading';
+import { useToastContext } from '@/contexts/ToastContext';
 
 const contactInfo = {
   email: 'adepuvaatsavasribhargav@gmail.com',
@@ -29,21 +31,109 @@ const ContactItem = ({ icon: Icon, title, value, link }: any) => (
   </motion.a>
 );
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
+export default function Contact() {
+  const { showToast } = useToastContext();
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     message: ''
   });
 
+  const [formState, setFormState] = useState<ContactFormState>({
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    errorMessage: '',
+    validationErrors: {}
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear validation error when user starts typing
+    if (formState.validationErrors[name]) {
+      setFormState(prev => ({
+        ...prev,
+        validationErrors: {
+          ...prev.validationErrors,
+          [name]: ''
+        }
+      }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    window.location.href = `mailto:${contactInfo.email}?subject=Message from ${formData.name}&body=${formData.message}`;
+    setFormState({ 
+      isLoading: true, 
+      isSuccess: false, 
+      isError: false,
+      errorMessage: '',
+      validationErrors: {}
+    });
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 400 && data.errors) {
+          const validationErrors = data.errors.reduce((acc: any, error: any) => {
+            acc[error.field] = error.message;
+            return acc;
+          }, {});
+          
+          setFormState({
+            isLoading: false,
+            isSuccess: false,
+            isError: true,
+            errorMessage: 'Please fix the validation errors',
+            validationErrors
+          });
+          showToast('Please fix the validation errors', 'error');
+          return;
+        }
+
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      setFormData({
+        name: '',
+        email: '',
+        message: ''
+      });
+      
+      setFormState({
+        isLoading: false,
+        isSuccess: true,
+        isError: false,
+        errorMessage: '',
+        validationErrors: {}
+      });
+
+      showToast('Message sent successfully!', 'success');
+
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      setFormState({
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        errorMessage: error.message || 'Failed to send message',
+        validationErrors: {}
+      });
+      showToast(error.message || 'Failed to send message', 'error');
+    }
   };
 
   return (
@@ -93,8 +183,8 @@ const Contact = () => {
           viewport={{ once: true }}
           className="space-y-6 p-8 rounded-2xl border border-purple-500/20 bg-black/40 backdrop-blur-sm"
         >
-          <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm text-gray-400">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-200">
               Name
             </label>
             <input
@@ -103,14 +193,19 @@ const Contact = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-lg bg-gray-900/50 border border-purple-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
-              placeholder="Enter your name"
+              className={`mt-1 block w-full rounded-md bg-black/40 border ${
+                formState.validationErrors.name ? 'border-red-500' : 'border-purple-500/20'
+              } px-3 py-2 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500`}
+              placeholder="Your name"
+              disabled={formState.isLoading}
             />
+            {formState.validationErrors.name && (
+              <p className="mt-1 text-sm text-red-500">{formState.validationErrors.name}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm text-gray-400">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-200">
               Email
             </label>
             <input
@@ -119,14 +214,19 @@ const Contact = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-lg bg-gray-900/50 border border-purple-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
-              placeholder="Enter your email"
+              className={`mt-1 block w-full rounded-md bg-black/40 border ${
+                formState.validationErrors.email ? 'border-red-500' : 'border-purple-500/20'
+              } px-3 py-2 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500`}
+              placeholder="your.email@example.com"
+              disabled={formState.isLoading}
             />
+            {formState.validationErrors.email && (
+              <p className="mt-1 text-sm text-red-500">{formState.validationErrors.email}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="message" className="block text-sm text-gray-400">
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-200">
               Message
             </label>
             <textarea
@@ -134,20 +234,45 @@ const Contact = () => {
               name="message"
               value={formData.message}
               onChange={handleChange}
-              required
-              rows={5}
-              className="w-full px-4 py-3 rounded-lg bg-gray-900/50 border border-purple-500/20 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors resize-none"
-              placeholder="Write your message here..."
+              rows={4}
+              className={`mt-1 block w-full rounded-md bg-black/40 border ${
+                formState.validationErrors.message ? 'border-red-500' : 'border-purple-500/20'
+              } px-3 py-2 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500`}
+              placeholder="Your message..."
+              disabled={formState.isLoading}
             />
+            {formState.validationErrors.message && (
+              <p className="mt-1 text-sm text-red-500">{formState.validationErrors.message}</p>
+            )}
           </div>
 
-          <button
-            type="submit"
-            className="group w-full px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-white font-semibold flex items-center justify-center gap-2"
-          >
-            Send Message
-            <Send className="transition-transform group-hover:translate-x-1" />
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={formState.isLoading}
+              className="w-full flex items-center justify-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {formState.isLoading ? (
+                <>
+                  <span className="animate-spin">⌛</span>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Send Message
+                </>
+              )}
+            </button>
+          </div>
+
+          {formState.isSuccess && (
+            <p className="text-green-500 text-center">Message sent successfully!</p>
+          )}
+          
+          {formState.isError && !Object.keys(formState.validationErrors).length && (
+            <p className="text-red-500 text-center">{formState.errorMessage}</p>
+          )}
         </motion.form>
 
         <motion.div
@@ -157,13 +282,8 @@ const Contact = () => {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <p className="text-gray-300">
-            I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions.
-          </p>
         </motion.div>
       </motion.div>
     </section>
   );
 };
-
-export default Contact;

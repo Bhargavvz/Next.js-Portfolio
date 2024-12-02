@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Lock } from 'lucide-react';
 
 interface PasswordModalProps {
   isOpen: boolean;
@@ -9,87 +10,166 @@ interface PasswordModalProps {
   onSubmit: (password: string) => void;
 }
 
-export default function PasswordModal({ isOpen, onClose, onSubmit }: PasswordModalProps) {
-  const [password, setPassword] = useState('');
+const PasswordModal = ({ isOpen, onClose, onSubmit }: PasswordModalProps) => {
+  const [digits, setDigits] = useState(['', '', '', '', '', '']);
+  const [isError, setIsError] = useState(false);
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isOpen) {
+      setDigits(['', '', '', '', '', '']);
+      setIsError(false);
+      inputRefs.current[0]?.focus();
+    }
+  }, [isOpen]);
+
+  const handleDigitChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; // Only allow digits
+
+    const newDigits = [...digits];
+    newDigits[index] = value;
+    setDigits(newDigits);
+    setIsError(false);
+
+    // Move to next input if value is entered
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // Submit if all digits are filled
+    if (index === 5 && value) {
+      const password = newDigits.join('');
+      onSubmit(password);
+      // Reset on error
+      if (password !== "070605") {
+        setIsError(true);
+        setTimeout(() => {
+          setDigits(['', '', '', '', '', '']);
+          inputRefs.current[0]?.focus();
+        }, 1000);
+      }
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !digits[index]) {
+      e.preventDefault();
+      if (index > 0) {
+        // Move to previous input on backspace if current input is empty
+        const newDigits = [...digits];
+        newDigits[index - 1] = '';
+        setDigits(newDigits);
+        inputRefs.current[index - 1]?.focus();
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    onSubmit(password);
-    setPassword('');
+    const pastedData = e.clipboardData.getData('text');
+    if (!/^\d+$/.test(pastedData)) return; // Only allow digits
+
+    const pastedDigits = pastedData.slice(0, 6).split('');
+    const newDigits = [...digits];
+    pastedDigits.forEach((digit, index) => {
+      if (index < 6) newDigits[index] = digit;
+    });
+    setDigits(newDigits);
+    setIsError(false);
+
+    // Focus last filled input or first empty input
+    const lastIndex = Math.min(pastedDigits.length - 1, 5);
+    inputRefs.current[lastIndex]?.focus();
+
+    if (pastedDigits.length === 6) {
+      const password = pastedDigits.join('');
+      onSubmit(password);
+      if (password !== "070605") {
+        setIsError(true);
+        setTimeout(() => {
+          setDigits(['', '', '', '', '', '']);
+          inputRefs.current[0]?.focus();
+        }, 1000);
+      }
+    }
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
         >
-          <div className="fixed inset-0 bg-black/50" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-md p-8 bg-black/90 border border-purple-500/20 rounded-2xl shadow-xl"
+          >
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl 
-                                   bg-gray-900 border border-white/10 p-6 text-left align-middle 
-                                   shadow-xl transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-white mb-4"
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="text-center mb-8">
+              <div className="inline-block p-3 bg-purple-500/20 rounded-full mb-4">
+                <Lock className="w-8 h-8 text-purple-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Enter Vault Code</h2>
+              <p className="text-gray-400">Enter the 6-digit code to access the vault</p>
+            </div>
+
+            <div className="flex justify-center gap-3 mb-8">
+              {digits.map((digit, index) => (
+                <div
+                  key={index}
+                  className={`relative ${isError ? 'animate-shake' : ''}`}
                 >
-                  Enter Password
-                </Dialog.Title>
-
-                <form onSubmit={handleSubmit}>
                   <input
-                    type="password"
-                    maxLength={6}
-                    placeholder="Enter 6-digit password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white 
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    ref={(el) => {
+                      if (el) inputRefs.current[index] = el;
+                    }}
+                    type="number"
+                    inputMode="numeric"
+                    pattern="\d*"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handleDigitChange(index, e.target.value)}
+                    onKeyDown={e => handleKeyDown(index, e)}
+                    onPaste={handlePaste}
+                    className={`w-12 h-16 text-2xl text-center bg-black/50 border-2 ${
+                      isError ? 'border-red-500' : digit ? 'border-purple-500' : 'border-purple-500/20'
+                    } rounded-lg focus:border-purple-500 focus:outline-none text-white transition-colors`}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck="false"
                   />
+                  <div className={`absolute inset-x-0 bottom-0 h-1 bg-purple-500 rounded-full transform origin-left transition-transform duration-300 ${
+                    digit ? 'scale-x-100' : 'scale-x-0'
+                  }`} />
+                </div>
+              ))}
+            </div>
 
-                  <div className="mt-4 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white 
-                               transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={password.length !== 6}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r 
-                               from-purple-500 to-cyan-500 rounded-lg disabled:opacity-50
-                               hover:opacity-90 transition-opacity"
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </form>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+            {isError && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-500 text-center"
+              >
+                Incorrect code. Please try again.
+              </motion.p>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-}
+};
+
+export default PasswordModal;

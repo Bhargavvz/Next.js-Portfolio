@@ -11,6 +11,7 @@ import Projects from '@/components/sections/Projects';
 import Achievements from '@/components/sections/Achievements';
 import Contact from '@/components/sections/Contact';
 import Blog from '@/components/sections/Blog';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
   return (
@@ -25,6 +26,7 @@ export default function Home() {
         <Blog />
         <Achievements />
         <Contact />
+        <Footer />
       </main>
       <Taskbar />
     </div>

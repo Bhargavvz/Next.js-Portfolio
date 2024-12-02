@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 
 interface CursorPosition {
@@ -22,25 +22,63 @@ const CustomCursor = () => {
   const [isClicking, setIsClicking] = useState(false);
   const [trails, setTrails] = useState<Trail[]>([]);
   const [isHovering, setIsHovering] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const [velocity, setVelocity] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const cursorControls = useAnimation();
   const orbitControls = useAnimation();
   const lastTimeRef = useRef(Date.now());
   const lastPositionRef = useRef<CursorPosition>({ x: 0, y: 0 });
-  const frameRef = useRef(0);
+  const rotationRef = useRef(0);
 
+  // Set mounted state
   useEffect(() => {
-    const animate = () => {
-      setRotation(prev => prev + 1);
-      frameRef.current = requestAnimationFrame(animate);
-    };
-    frameRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameRef.current);
+    setIsMounted(true);
+    return () => setIsMounted(false);
   }, []);
 
+  // Initialize controls after mount
   useEffect(() => {
+    if (!isMounted) return;
+    
+    cursorControls.set({ scale: 1 });
+    orbitControls.set({ scale: 1 });
+  }, [cursorControls, orbitControls, isMounted]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const updateTrails = useCallback((currentPosition: CursorPosition, currentVelocity: { x: number, y: number }) => {
+    if (!isVisible || !isMounted) return;
+
+    const speed = Math.sqrt(currentVelocity.x * currentVelocity.x + currentVelocity.y * currentVelocity.y);
+    const maxTrails = Math.min(Math.floor(speed / 5), 5);
+    
+    if (maxTrails > 0) {
+      rotationRef.current += 1;
+      const newTrails = Array.from({ length: maxTrails }, (_, i) => ({
+        x: currentPosition.x,
+        y: currentPosition.y,
+        opacity: 0.3 - (i * 0.05),
+        rotation: rotationRef.current + (i * 15),
+        scale: 1 - (i * 0.1)
+      }));
+      setTrails(newTrails);
+    } else {
+      setTrails([]);
+    }
+  }, [isVisible, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     const updatePosition = (e: MouseEvent) => {
       const currentTime = Date.now();
       const deltaTime = Math.max(currentTime - lastTimeRef.current, 1);
@@ -49,89 +87,89 @@ const CustomCursor = () => {
         x: (e.clientX - lastPositionRef.current.x) / deltaTime * 16,
         y: (e.clientY - lastPositionRef.current.y) / deltaTime * 16
       };
-      
-      setVelocity(newVelocity);
-      setPosition({ x: e.clientX, y: e.clientY });
-      
-      const speed = Math.sqrt(newVelocity.x * newVelocity.x + newVelocity.y * newVelocity.y);
-      
-      if (speed > 0.5) {
-        const newTrails = Array.from({ length: 4 }).map((_, i) => ({
-          x: position.x + (newVelocity.x * i * -1.5),
-          y: position.y + (newVelocity.y * i * -1.5),
-          opacity: 1 - (i * 0.2),
-          rotation: Math.atan2(newVelocity.y, newVelocity.x) * (180 / Math.PI),
-          scale: 1 - (i * 0.15)
-        }));
-        
-        setTrails(prev => [...newTrails, ...prev].slice(0, 6));
-      }
-      
+
+      const newPosition = { x: e.clientX, y: e.clientY };
+      setPosition(newPosition);
+      updateTrails(newPosition, newVelocity);
+
       lastTimeRef.current = currentTime;
-      lastPositionRef.current = { x: e.clientX, y: e.clientY };
-      setIsVisible(true);
-
-      // Animate orbit speed based on cursor velocity
-      const orbitSpeed = Math.min(Math.max(speed * 0.5, 2), 8);
-      orbitControls.start({
-        rotate: 360,
-        transition: { duration: orbitSpeed, ease: "linear", repeat: Infinity }
-      });
-    };
-
-    const handleMouseDown = () => {
-      setIsClicking(true);
-      cursorControls.start({
-        scale: 0.8,
-        transition: { duration: 0.2, type: "spring", stiffness: 300, damping: 15 }
-      });
-    };
-
-    const handleMouseUp = () => {
-      setIsClicking(false);
-      cursorControls.start({
-        scale: isHovering ? 1.5 : 1,
-        transition: { duration: 0.3, type: "spring", stiffness: 200, damping: 10 }
-      });
+      lastPositionRef.current = newPosition;
     };
 
     const handleMouseEnter = () => setIsVisible(true);
-    const handleMouseLeave = () => setIsVisible(false);
-    
-    const handleElementHover = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const isClickable = target.matches('a, button, [role="button"], [data-cursor-pointer]');
-      setIsHovering(isClickable);
-      
-      if (isClickable) {
+    const handleMouseLeave = () => {
+      setIsVisible(false);
+      setTrails([]);
+    };
+
+    const handleMouseDown = () => {
+      if (!isMounted) return;
+      setIsClicking(true);
+      if (isMounted) {
         cursorControls.start({
-          scale: 1.5,
-          transition: { duration: 0.3, type: "spring", stiffness: 200, damping: 10 }
-        });
-      } else {
+          scale: 0.8,
+          transition: { duration: 0.2 }
+        }).catch((error) => console.error('Error during animation start:', error));
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isMounted) return;
+      setIsClicking(false);
+      if (isMounted) {
         cursorControls.start({
-          scale: 1,
-          transition: { duration: 0.3, type: "spring", stiffness: 200, damping: 10 }
-        });
+          scale: isHovering ? 1.5 : 1,
+          transition: { duration: 0.2 }
+        }).catch((error) => console.error('Error during animation start:', error));
       }
     };
 
     document.addEventListener('mousemove', updatePosition);
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('mouseenter', handleMouseEnter);
     document.addEventListener('mouseleave', handleMouseLeave);
-    document.addEventListener('mouseover', handleElementHover);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', updatePosition);
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.removeEventListener('mouseleave', handleMouseLeave);
-      document.removeEventListener('mouseover', handleElementHover);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [position, isHovering, cursorControls, orbitControls]);
+  }, [cursorControls, isHovering, updateTrails, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const handleElementHover = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isHoverableElement = target.closest('a, button, [role="button"]');
+      
+      if (isHoverableElement !== null) {
+        setIsHovering(true);
+        if (isMounted) {
+          cursorControls.start({
+            scale: 1.5,
+            transition: { duration: 0.2 }
+          }).catch((error) => console.error('Error during animation start:', error));
+        }
+      } else {
+        setIsHovering(false);
+        if (isMounted) {
+          cursorControls.start({
+            scale: isClicking ? 0.8 : 1,
+            transition: { duration: 0.2 }
+          }).catch((error) => console.error('Error during animation start:', error));
+        }
+      }
+    };
+
+    document.addEventListener('mouseover', handleElementHover);
+    return () => document.removeEventListener('mouseover', handleElementHover);
+  }, [cursorControls, isClicking, isMounted]);
+
+  if (isMobile || !isMounted) return null;
 
   return (
     <AnimatePresence>
@@ -175,6 +213,7 @@ const CustomCursor = () => {
           >
             <motion.div
               animate={cursorControls}
+              initial={{ scale: 1 }}
               className="relative w-6 h-6"
             >
               <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]">

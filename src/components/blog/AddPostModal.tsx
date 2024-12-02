@@ -1,162 +1,249 @@
 'use client';
 
-import { useState, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { BlogPostType } from '@/app/blog/page';
-import Image from 'next/image';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
+import { BlogPostType } from '@/types/blog';
+import { useToastContext } from '@/contexts/ToastContext';
 
 interface AddPostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (post: Omit<BlogPostType, 'id' | 'createdAt'>) => void;
+  onSubmit: (post: Partial<BlogPostType>) => void;
 }
 
-export default function AddPostModal({ isOpen, onClose, onSubmit }: AddPostModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [previewUrl, setPreviewUrl] = useState('');
+const AddPostModal = ({ isOpen, onClose, onSubmit }: AddPostModalProps) => {
+  const { showToast } = useToastContext();
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    coverImage: '',
+    tags: '',
+    authorName: '',
+    authorImage: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setPreviewUrl(result);
-        setImageUrl(result);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim());
+      
+      if (tagsArray.some(tag => tag.length > 20)) {
+        throw new Error('Tags must be 20 characters or less');
+      }
+
+      if (!formData.title.trim()) {
+        showToast('Title is required', 'error');
+        return;
+      }
+      if (!formData.content.trim()) {
+        showToast('Content is required', 'error');
+        return;
+      }
+      if (!formData.excerpt.trim()) {
+        showToast('Excerpt is required', 'error');
+        return;
+      }
+
+      const post: Partial<BlogPostType> = {
+        title: formData.title,
+        excerpt: formData.excerpt,
+        content: formData.content,
+        coverImage: formData.coverImage || '/images/default-cover.jpg',
+        tags: tagsArray,
+        author: {
+          name: formData.authorName || 'Anonymous',
+          image: formData.authorImage || '/images/default-avatar.jpg',
+        },
+        published: true,
       };
-      reader.readAsDataURL(file);
+
+      await onSubmit(post);
+      showToast('Post added successfully!', 'success');
+      setFormData({
+        title: '',
+        excerpt: '',
+        content: '',
+        coverImage: '',
+        tags: '',
+        authorName: '',
+        authorImage: '',
+      });
+      onClose();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Failed to add post', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ title, description, imageUrl });
-    setTitle('');
-    setDescription('');
-    setImageUrl('');
-    setPreviewUrl('');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
         >
-          <div className="fixed inset-0 bg-black/50" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-2xl p-8 bg-black/90 border border-purple-500/20 rounded-2xl shadow-xl"
+          >
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl 
-                                   bg-gray-900 border border-white/10 p-6 text-left align-middle 
-                                   shadow-xl transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-xl font-medium leading-6 text-white mb-4"
+              <X className="w-6 h-6" />
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-6">Add New Blog Post</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  maxLength={100}
+                  className="w-full px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                  placeholder="Post title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Excerpt *
+                </label>
+                <textarea
+                  name="excerpt"
+                  value={formData.excerpt}
+                  onChange={handleChange}
+                  required
+                  maxLength={200}
+                  rows={2}
+                  className="w-full h-12 px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                  placeholder="Brief description of the post"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Content *
+                </label>
+                <textarea
+                  name="content"
+                  value={formData.content}
+                  onChange={handleChange}
+                  required
+                  rows={6}
+                  className="w-full h-32 px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                  placeholder="Post content..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Cover Image URL
+                </label>
+                <input
+                  type="url"
+                  name="coverImage"
+                  value={formData.coverImage}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                  placeholder="/images/default-cover.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Tags
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                  placeholder="Comma-separated tags (e.g., nextjs, react, typescript)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Author Name
+                  </label>
+                  <input
+                    type="text"
+                    name="authorName"
+                    value={formData.authorName}
+                    onChange={handleChange}
+                    required
+                    maxLength={50}
+                    className="w-full px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                    placeholder="Author name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Author Image URL
+                  </label>
+                  <input
+                    type="url"
+                    name="authorImage"
+                    value={formData.authorImage}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 bg-black/50 border border-purple-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
                 >
-                  Add New Blog Post
-                </Dialog.Title>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
-                               text-white placeholder-gray-400 focus:outline-none 
-                               focus:ring-2 focus:ring-purple-500"
-                      placeholder="Enter post title"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      required
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={4}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
-                               text-white placeholder-gray-400 focus:outline-none 
-                               focus:ring-2 focus:ring-purple-500"
-                      placeholder="Enter post description"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Image
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
-                               text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                               file:border-0 file:bg-purple-500 file:text-white 
-                               hover:file:bg-purple-600"
-                    />
-                    {previewUrl && (
-                      <div className="mt-2 relative w-full h-48">
-                        <Image
-                          src={previewUrl}
-                          alt="Preview"
-                          fill
-                          className="rounded-lg object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="px-4 py-2 text-sm font-medium text-gray-400 
-                               hover:text-white transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white 
-                               bg-gradient-to-r from-purple-500 to-cyan-500 
-                               rounded-lg hover:opacity-90 transition-opacity"
-                    >
-                      Create Post
-                    </button>
-                  </div>
-                </form>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isLoading ? 'Adding...' : 'Add Post'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-}
+};
+
+export default AddPostModal;
