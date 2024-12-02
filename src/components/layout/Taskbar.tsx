@@ -27,7 +27,7 @@ const Taskbar = () => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 1080);  // Updated breakpoint for wider mobile screens
     };
 
     checkMobile();
@@ -97,7 +97,7 @@ const Taskbar = () => {
       className={cn(
         "fixed z-50 pointer-events-none",
         isMobile 
-          ? "bottom-8 left-1/2 -translate-x-1/2" 
+          ? "bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-[500px]" // Added max-width and width constraints
           : "left-8 top-1/2 -translate-y-1/2"
       )}
     >
@@ -110,7 +110,10 @@ const Taskbar = () => {
           damping: 20,
           delay: 0.5 
         }}
-        className="pointer-events-auto relative"
+        className={cn(
+          "flex pointer-events-auto backdrop-blur-md bg-black/70 border border-white/10 rounded-full p-2",
+          isMobile ? "justify-around w-full" : "flex-col gap-4"  // Added full width and justify-around for mobile
+        )}
       >
         {/* Glow effect */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 blur-xl" />
