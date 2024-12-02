@@ -1,11 +1,13 @@
-import { FC } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { format } from 'date-fns';
+'use client';
+
 import { motion } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { format } from 'date-fns';
 import { Edit2, Trash2 } from 'lucide-react';
 
-interface Post {
+interface BlogPostProps {
+  post: {
     _id: string;
     title: string;
     excerpt: string;
@@ -16,115 +18,100 @@ interface Post {
       name: string;
       image: string;
     };
-    date?: string;
+    createdAt: string;
     slug: string;
+  };
+  isAuthenticated?: boolean;
+  onEdit?: (postId: string) => void;
+  onDelete?: (postId: string) => void;
 }
 
-interface BlogPostProps {
-    post: Post;
-    isAuthenticated?: boolean;
-    onEdit?: (id: string) => void;
-    onDelete?: (id: string) => void;
-}
-
-const BlogPost: FC<BlogPostProps> = ({ post, isAuthenticated, onEdit, onDelete }) => {
+const BlogPost = ({ post, isAuthenticated, onEdit, onDelete }: BlogPostProps) => {
   return (
-    <motion.article 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="group bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-xl overflow-hidden hover:border-purple-500/40 transition-colors"
-    >
-      <Link href={`/blog/${post.slug}`} className="block">
-        {/* Cover Image */}
-        <div className="relative w-full h-48 mb-4 overflow-hidden">
-          <Image
-            src={post.image || '/images/default-cover.jpg'}
-            alt={post.title}
-            fill
-            className="object-cover transform group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={false}
-          />
-        </div>
-
-        <div className="p-6">
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {post.tags.map((tag, index) => (
-              <span
-                key={`${tag}-${index}`}
-                className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
+    <div className="relative">
+      <motion.article
+        layout
+        className="group bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-xl overflow-hidden hover:border-purple-500/40 transition-colors"
+      >
+        <Link href={`/blog/${post.slug}`} className="block">
+          {/* Cover Image */}
+          <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
+            <Image
+              src={post.image || '/images/default-cover.jpg'}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
+            />
           </div>
 
-          {/* Title */}
-          <h2 className="text-xl font-bold mb-2 text-white group-hover:text-purple-400 transition-colors">
-            {post.title}
-          </h2>
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
 
-          {/* Excerpt */}
-          <p className="text-gray-300 mb-4 line-clamp-3">
-            {post.excerpt}
-          </p>
+            <h2 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors">
+              {post.title}
+            </h2>
 
-          {/* Author and Date */}
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            {post.author && (
-              <div className="flex items-center gap-2">
-                <div className="relative w-6 h-6 rounded-full overflow-hidden">
-                  <Image
-                    src={post.author.image || '/images/default-avatar.jpg'}
-                    alt={post.author.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <span>{post.author.name}</span>
+            <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+              {post.excerpt}
+            </p>
+
+            <div className="flex items-center gap-3">
+              <Image
+                src={post.author?.image || '/images/default-avatar.jpg'}
+                alt={post.author?.name || 'Anonymous'}
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+              <div>
+                <p className="text-sm text-white">{post.author?.name || 'Anonymous'}</p>
+                <p className="text-xs text-gray-400">
+                  {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                </p>
               </div>
-            )}
-            <span>
-              {post.date && format(new Date(post.date), 'MMM d, yyyy')}
-            </span>
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </motion.article>
 
-      {/* Edit and Delete buttons */}
       {isAuthenticated && (
-        <div className="flex justify-end gap-2 p-4 border-t border-purple-500/20">
-          {onEdit && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onEdit(post._id);
-              }}
-              className="p-2 text-purple-400 hover:text-purple-300 transition-colors"
-              aria-label="Edit post"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (window.confirm('Are you sure you want to delete this post?')) {
-                  onDelete(post._id);
-                }
-              }}
-              className="p-2 text-red-400 hover:text-red-300 transition-colors"
-              aria-label="Delete post"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
+        <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(post._id);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg text-white text-sm font-medium shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
+            title="Edit post"
+          >
+            <Edit2 className="w-4 h-4" />
+            Edit
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(post._id);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg text-white text-sm font-medium shadow-lg shadow-red-500/25 transition-all hover:scale-105"
+            title="Delete post"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </button>
         </div>
       )}
-    </motion.article>
+    </div>
   );
 };
 
