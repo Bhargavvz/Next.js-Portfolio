@@ -43,7 +43,7 @@ export default function BlogPage() {
     fetchPosts();
     const isAuth = localStorage.getItem('blog_auth') === 'true';
     setIsAuthenticated(isAuth);
-  }, []);
+  }, [fetchPosts]);
 
   const fetchPosts = async (pageNum: number = 1) => {
     try {
