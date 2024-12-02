@@ -117,9 +117,9 @@ const Taskbar = () => {
         
         {/* Main container */}
         <div className={cn(
-          "relative flex gap-2 border border-white/10 bg-black/80 backdrop-blur-xl",
+          "relative flex gap-2 border border-white/10 bg-black/90 backdrop-blur-xl",
           isMobile 
-            ? "flex-row rounded-full px-3 py-2" 
+            ? "flex-row rounded-full px-4 py-3 shadow-lg" 
             : "flex-col items-center gap-3 rounded-full py-4 px-3"
         )}>
           {/* Decorative elements */}
@@ -131,8 +131,9 @@ const Taskbar = () => {
             <motion.div
               key={item.label}
               className="relative group"
-              onMouseEnter={() => setHoveredItem(item.label)}
-              onMouseLeave={() => setHoveredItem(null)}
+              onMouseEnter={() => !isMobile && setHoveredItem(item.label)}
+              onMouseLeave={() => !isMobile && setHoveredItem(null)}
+              onClick={() => isMobile && setHoveredItem(hoveredItem === item.label ? null : item.label)}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{
@@ -145,28 +146,33 @@ const Taskbar = () => {
               <button
                 onClick={() => handleClick(item.href)}
                 className={cn(
-                  "relative p-2.5 rounded-full transition-colors duration-200",
+                  "relative rounded-full transition-colors duration-200",
+                  isMobile ? "p-3" : "p-2.5",
                   isActive(item.href)
                     ? "text-purple-400"
                     : "text-gray-400 hover:text-purple-400"
                 )}
                 aria-label={item.label}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className={cn(
+                  "transition-transform",
+                  isMobile ? "w-6 h-6" : "w-5 h-5",
+                  isActive(item.href) && "scale-110"
+                )} />
               </button>
 
               {/* Label tooltip */}
               <AnimatePresence>
                 {hoveredItem === item.label && (
                   <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: isMobile ? 10 : 0, x: isMobile ? 0 : -10 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
                     exit={{ opacity: 0 }}
                     className={cn(
-                      "absolute whitespace-nowrap rounded-lg bg-black/80 px-3 py-1.5",
-                      "border border-white/10 text-sm text-white backdrop-blur-md",
+                      "absolute whitespace-nowrap rounded-lg bg-black/95 px-3 py-2",
+                      "border border-white/10 text-sm text-white backdrop-blur-md shadow-xl",
                       isMobile
-                        ? "top-0 left-1/2 -translate-x-1/2 -translate-y-full"
+                        ? "bottom-full left-1/2 -translate-x-1/2 mb-2"
                         : "top-1/2 -translate-y-1/2 left-12"
                     )}
                   >
